@@ -1,0 +1,39 @@
+﻿@model Technical_Task.Models.User
+
+<h2>@(Model == null ? "Create" : "Edit") User</h2>
+
+<form asp-action="@(Model == null ? "Create" : "Edit")">
+    <input type="hidden" asp-for="Id" />
+
+    <div>
+        <label>Full Name</label>
+        <input asp-for="UserFullName" class="form-control" />
+        <span asp-validation-for="UserFullName" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label>Username</label>
+        <input asp-for="Username" class="form-control" />
+        <span asp-validation-for="Username" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label>Password</label>
+        <input asp-for="Password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label>Date of Birth</label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" />
+        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label>Is Active</label>
+        <input asp-for="IsActive" type="checkbox" />
+    </div>
+
+    <button type="submit">Save</button>
+    <a asp-action="Index">Back to List</a>
+</form>

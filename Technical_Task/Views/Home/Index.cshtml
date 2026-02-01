@@ -1,0 +1,10 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1>Welcome, @User.Identity.Name!</h1>
+    <p>You have successfully logged into the User Management System.</p>
+    <hr />
+    <a asp-controller="Users" asp-action="Index">Go to User Management</a>
+</div>
