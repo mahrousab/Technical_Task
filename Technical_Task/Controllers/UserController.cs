@@ -1,57 +1,59 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Technical_Task.Data;
+using Technical_Task.IService;
 using Technical_Task.Models;
 
 namespace Technical_Task.Controllers
 {
     public class UserController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        public UserController(ApplicationDbContext context)
+        private readonly IUserService _userService;
+
+        public UserController(IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
-        public IActionResult Index() =>
-            View(_context.users.ToList());
+        public IActionResult Index() => View(_userService.GetAllUsers());
         [HttpGet]
         public IActionResult Create() => View();
 
         [HttpPost]
-        public  IActionResult Create(User user)
+        public IActionResult Create(User user)
         {
             if (ModelState.IsValid) 
             {
-                user.CreationDate = DateTime.Now;
-                _context.users.Add(user);
-                 _context.SaveChanges();
+                user.CreationDate = DateTime.Now; 
+                _userService.CreateUser(user);
                 return RedirectToAction(nameof(Index));
             }
             return View(user);
         }
 
         [HttpGet]
-        public IActionResult Edit(int id) =>
-            View(_context.users.Find(id));
+        public IActionResult Edit(int id) { 
+
+            var user = _userService.GetUserById(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return View(user);
+        }
 
         [HttpPost]
         public IActionResult Edit(User user)
         {
             if (ModelState.IsValid)
             {
-                _context.users.Update(user); 
-                _context.SaveChanges();
+                _userService.UpdateUser(user);
                 return RedirectToAction(nameof(Index));
             }
             return View(user);
         }
+        [HttpDelete]
         public IActionResult Delete(int id)
         {
-            var user = _context.users.Find(id);
-            if (user != null)
-            {
-                 _context.users.Remove(user); 
-                _context.SaveChanges();
-            }
+            _userService.DeleteUser(id);
             return RedirectToAction(nameof(Index));
         }
     }

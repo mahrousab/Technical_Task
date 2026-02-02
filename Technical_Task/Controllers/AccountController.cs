@@ -4,16 +4,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Technical_Task.Data;
+using Technical_Task.IService;
 using Technical_Task.Models;
 
 namespace Technical_Task.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        public AccountController(ApplicationDbContext context)
+        private readonly IUserService _userService;
+        public AccountController(IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
         [HttpGet]
         public IActionResult Login() => View();
@@ -22,23 +23,39 @@ namespace Technical_Task.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel loginViewModel)
         {
-            var user = await _context.users
-                .FirstOrDefaultAsync(u => u.Username
-                == loginViewModel.Username 
-                && u.Password == loginViewModel.Password);
-
-            if (user != null)
+            if (!ModelState.IsValid)
             {
-                var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Username) };
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+                return View(loginViewModel);
+            }
+          
+            var user = _userService.ValidateUser(loginViewModel);
 
-                 return RedirectToAction("Index", "Home"); 
+            if (user != null && user.IsActive)
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim("UserFullName", user.UserFullName)
+                };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+               
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                return RedirectToAction("Index", "Home");
             }
 
-            ModelState.AddModelError("", " the data is invalid");
-            return View(user);
+            ModelState.AddModelError("", "Invalid data.");
+            return View(loginViewModel);
+        }
 
+        [HttpGet]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Account");
         }
     }
 }
